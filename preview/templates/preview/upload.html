@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HRIS Import Preview</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 44rem; line-height: 1.5; }
+    .error { border: 1px solid #b00; background: #fdf0f0; padding: 0.75rem 1rem; margin: 1rem 0; }
+    code { background: #f2f2f2; padding: 0.1rem 0.3rem; }
+    form { margin-top: 1.5rem; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>HRIS Import Preview</h1>
+  <p>
+    Upload an HRIS CSV export to preview what an import would do.
+    Nothing is saved &mdash; the file is analyzed in memory and discarded.
+  </p>
+
+  {% if error %}
+    <p class="error"><strong>Could not read that file.</strong><br>{{ error }}</p>
+  {% endif %}
+
+  <p>
+    Expected headers (in any order):
+    <code>employee_id, employee_name, email, manager_id, manager_email, department</code>
+  </p>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="csv_file">CSV file</label><br>
+    <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" required>
+    <br>
+    <button type="submit">Analyze</button>
+  </form>
+</body>
+</html>

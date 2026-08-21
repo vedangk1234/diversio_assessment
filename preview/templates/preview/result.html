@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Import Preview &mdash; {{ filename }}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 60rem; line-height: 1.5; }
+    h2 { margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+    th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+    th { background: #f6f6f6; }
+    .summary td { font-variant-numeric: tabular-nums; }
+    .muted { color: #666; }
+    .count { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <h1>Import Preview</h1>
+  <p class="muted">
+    Source file: {{ filename }} &mdash; analyzed in memory, nothing was saved.
+  </p>
+  <p><a href="{% url 'import-preview' %}">&larr; Upload another file</a></p>
+
+  <h2>Summary</h2>
+  <table class="summary">
+    <tr><th>Total source rows</th><td>{{ result.total_rows }}</td></tr>
+    <tr><th>Employees accepted for analysis</th><td>{{ result.accepted_count }}</td></tr>
+    <tr><th>Validation errors</th><td>{{ result.errors|length }}</td></tr>
+    <tr><th>Root employees (no manager)</th><td>{{ result.roots|length }}</td></tr>
+    <tr><th>Managers</th><td>{{ result.managers|length }}</td></tr>
+    <tr><th>Employees in a reporting cycle</th><td>{{ result.cycle_members|length }}</td></tr>
+  </table>
+
+  <h2>Validation errors ({{ result.errors|length }})</h2>
+  {% if result.errors %}
+    <p class="muted">
+      Identity errors exclude a row from the analysis entirely.
+      Manager errors do not &mdash; those employees are still accepted, but
+      contribute no reporting relationship.
+    </p>
+    <table>
+      <tr><th>Source row</th><th>Employee ID</th><th>Problem</th></tr>
+      {% for error in result.errors %}
+        <tr>
+          <td>{{ error.row_number }}</td>
+          <td>{{ error.employee_id|default:"&mdash;" }}</td>
+          <td>{{ error.message }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">None.</p>
+  {% endif %}
+
+  <h2>Root employees ({{ result.roots|length }})</h2>
+  {% if result.roots %}
+    <table>
+      <tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Department</th><th>Source row</th></tr>
+      {% for employee in result.roots %}
+        <tr>
+          <td>{{ employee.employee_id }}</td>
+          <td>{{ employee.name }}</td>
+          <td>{{ employee.email }}</td>
+          <td>{{ employee.department }}</td>
+          <td>{{ employee.row_number }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">None.</p>
+  {% endif %}
+
+  <h2>Managers and direct-report counts ({{ result.managers|length }})</h2>
+  {% if result.managers %}
+    <table>
+      <tr><th>Employee ID</th><th>Name</th><th>Department</th><th class="count">Direct reports</th></tr>
+      {% for manager in result.managers %}
+        <tr>
+          <td>{{ manager.employee_id }}</td>
+          <td>{{ manager.name }}</td>
+          <td>{{ manager.department }}</td>
+          <td class="count">{{ manager.direct_reports|length }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">None.</p>
+  {% endif %}
+
+  <h2>Employees in a reporting cycle ({{ result.cycle_members|length }})</h2>
+  {% if result.cycle_members %}
+    <p class="muted">
+      These employees are members of a loop in the reporting chain. Employees
+      who merely report <em>into</em> a cycle are not listed here.
+    </p>
+    <table>
+      <tr><th>Employee ID</th><th>Name</th><th>Reports to</th><th>Source row</th></tr>
+      {% for employee in result.cycle_members %}
+        <tr>
+          <td>{{ employee.employee_id }}</td>
+          <td>{{ employee.name }}</td>
+          <td>{{ employee.manager.employee_id }}</td>
+          <td>{{ employee.row_number }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">None.</p>
+  {% endif %}
+</body>
+</html>
