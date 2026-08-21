@@ -174,10 +174,3 @@ trace.
   in one list.
 - No auth, no deployment config, no CSV export of the preview — all out of scope.
 
-## Time spent
-
-_TODO: approximately X hours._
-
-## AI tools used
-
-_TODO: list tools and how they were used._
